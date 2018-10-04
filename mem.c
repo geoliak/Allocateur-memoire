@@ -6,14 +6,19 @@ struct fb *next ;
 
 struct fb* tete;
 mem_fit_function_t* g_fonction_defaut;
+char* memoire;
 
 void mem_init(char* mem, size_t taille){
-	
-	struct fb *(*mem_fit_first_ptr)(struct fb*, size_t) = &mem_fit_first; //crétion prointeur de mem_fit_first
-	mem_fit(*mem_fit_first_ptr); // on défninie mem_fit_first comme recherche par defaut
-	mem = malloc(taille); //on alloue la plage mémoire
-	tete =(struct fb *) mem; //on place la tête de liste en début de la plage mémoire
-	tete->size = taille;
+    	
+    if(memoire != NULL){
+        free(memoire);
+    }
+    struct fb *(*mem_fit_first_ptr)(struct fb*, size_t) = &mem_fit_first; //crétion prointeur de mem_fit_first
+    mem_fit(*mem_fit_first_ptr); // on défninie mem_fit_first comme recherche par defaut
+    mem = malloc(taille); //on alloue la plage mémoire
+    memoire = mem;          //On garde l'adresse de la plage memoire pour pouvoir eventuellement la liberer
+    tete =(struct fb *) mem; //on place la tête de liste en début de la plage mémoire
+    tete->size = taille;
 }
 
 //change la fonction de recherche
@@ -24,10 +29,10 @@ void mem_fit(mem_fit_function_t* fonction){
 //renvoit l'adresse du premier block de taille ou égale à size ou renvoie NULL
 struct fb* mem_fit_first(struct fb* list, size_t size){
 	struct fb* tete = list;
-	while( tete->size < size && tete != NULL){
+	while(tete != NULL && tete->size < size + sizeof(struct fb)){
 		tete = tete->next;
 	}
-	return tete;
+    return tete;
 }
 
 //reçoit taille à allouer, retourne une adresse ou NULL
