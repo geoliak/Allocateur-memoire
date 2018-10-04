@@ -7,6 +7,7 @@ struct fb *next ;
 struct fb* tete;
 mem_fit_function_t* g_fonction_defaut;
 char* memoire;
+size_t taille_totale;
 
 void mem_init(char* mem, size_t taille){
     	
@@ -16,7 +17,8 @@ void mem_init(char* mem, size_t taille){
     struct fb *(*mem_fit_first_ptr)(struct fb*, size_t) = &mem_fit_first; //crétion prointeur de mem_fit_first
     mem_fit(*mem_fit_first_ptr); // on défninie mem_fit_first comme recherche par defaut
     mem = malloc(taille); //on alloue la plage mémoire
-    memoire = mem;          //On garde l'adresse de la plage memoire pour pouvoir eventuellement la liberer
+    taille_totale = taille;
+    memoire = mem;        //On garde l'adresse de la plage memoire pour pouvoir eventuellement la liberer
     tete =(struct fb *) mem; //on place la tête de liste en début de la plage mémoire
     tete->size = taille;
 }
@@ -98,11 +100,20 @@ void mem_free(void *zone){
 }
 
 void mem_show(void (*print)(void *, size_t, int free)){
-	struct fb *current = tete;
-	while(current!=NULL){
-		print(current,current->size,1);
-		current = current->next;
-		}
+    
+    struct fb* current  = &memoire;
+
+	while((void *)&current <= (void *)(&memoire + taille_totale)){
+        struct fb* tete_test = tete;
+        while(tete_test != NULL){
+            if(&tete_test == &current){
+                print(current,current->size,1);
+            }
+        if(tete_test==NULL)
+            print(current,current->size,0);
+        }
+        current = (struct fb*)&current + current->size;
+    }
 }
 
 
