@@ -6,7 +6,7 @@ struct fb *next ;
 
 struct fb* tete;
 mem_fit_function_t* g_fonction_defaut;
-char* memoire;
+void* memoire;
 size_t taille_totale;
 
 void mem_init(char* mem, size_t taille){
@@ -101,9 +101,12 @@ void mem_free(void *zone){
 
 void mem_show(void (*print)(void *, size_t, int free)){
     
-    struct fb* current  = &memoire;
+    struct fb* current = memoire;
+    
+    if(!((void*) current == memoire)){
+        printf("oups! mauvaise alignement current = %p memoire = %p", &current, memoire);}
 
-	while((void *)&current <= (void *)(&memoire + taille_totale)){
+	while((void *)current <= (void *)(memoire + taille_totale)){
         struct fb* tete_test = tete;
         while(tete_test != NULL){
             if(&tete_test == &current){
@@ -111,8 +114,9 @@ void mem_show(void (*print)(void *, size_t, int free)){
             }
         if(tete_test==NULL)
             print(current,current->size,0);
+        tete_test = tete_test->next;
         }
-        current = (struct fb*)&current + current->size;
+        current = current + current->size;
     }
 }
 
